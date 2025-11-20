@@ -1,24 +1,12 @@
-# Usar una imagen de Node para construir el proyecto
+# Etapa 1: Construir la aplicación Angular
 FROM node:18 AS build
-
-# Establecer el directorio de trabajo
 WORKDIR /app
-
-# Copiar los archivos necesarios
-COPY package.json package-lock.json ./
-RUN npm install
-
+COPY package*.json ./
+RUN npm ci
 COPY . .
+RUN npm run build -- --configuration production
 
-# Construir el proyecto Angular
-RUN npm run build
-
-# Usar una imagen de Nginx para servir el frontend
+# Etapa 2: Servir con Nginx
 FROM nginx:alpine
-COPY --from=build /app/dist/curso /usr/share/nginx/html
-
-# Copiar configuración personalizada de Nginx si es necesario
-COPY nginx.conf /etc/nginx/nginx.conf
-
+COPY --from=build /app/dist/curso/browser /usr/share/nginx/html
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
