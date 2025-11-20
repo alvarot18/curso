@@ -1,0 +1,24 @@
+/* Estilos específicos para el componente de certificados */
+.table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 0.75rem;
+}
+
+code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9rem;
+}
+
+.btn-outline-primary:disabled,
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.text-muted i {
+  margin-bottom: 1rem;
+}

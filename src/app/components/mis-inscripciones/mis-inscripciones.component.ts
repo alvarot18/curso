@@ -176,7 +176,20 @@ export class MisInscripcionesComponent implements OnInit {
           }
           
           this.modulosCompletados.add(modulo.id!);
-          alert('Módulo completado exitosamente');
+          
+          // Verificar si se completaron todos los módulos
+          const modulosCompletados = this.modulosCurso.filter(m => 
+            m.estadoProgreso === 'TERMINADO' || this.modulosCompletados.has(m.id!)
+          ).length;
+          
+          const totalModulos = this.modulosCurso.length;
+          
+          if (modulosCompletados === totalModulos && totalModulos > 0) {
+            // Curso completado al 100%
+            alert(`🎉 ¡FELICITACIONES! 🎉\n\nHas completado exitosamente el curso:\n"${this.cursoSeleccionado?.cursoTitulo}"\n\n¡Excelente trabajo! Has terminado todos los módulos del curso.`);
+          } else {
+            alert('Módulo completado exitosamente');
+          }
           
           // Recargar inscripciones para actualizar el progreso general
           this.cargarMisInscripciones();
