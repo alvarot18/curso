@@ -11,20 +11,28 @@
         <li class="nav-item">
           <a class="nav-link" [routerLink]="['/home']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
         </li>
+        
+        <!-- Solo para ADMIN -->
         <li class="nav-item" *ngIf="currentUser && currentUser.rol === 'ADMIN'">
           <a class="nav-link" [routerLink]="['/gestion-usuarios']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Usuarios</a>
         </li>
+        
+        <!-- Para ADMIN e INSTRUCTOR -->
         <li class="nav-item" *ngIf="currentUser && (currentUser.rol === 'ADMIN' || currentUser.rol === 'INSTRUCTOR')">
           <a class="nav-link" [routerLink]="['/gestion-cursos']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Cursos</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" [routerLink]="['/mis-inscripciones']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Mis Inscripciones</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" [routerLink]="['/mis-certificados']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Mis Certificados</a>
-        </li>
+        
+        <!-- Solo para ADMIN -->
         <li class="nav-item" *ngIf="currentUser && currentUser.rol === 'ADMIN'">
           <a class="nav-link" [routerLink]="['/reportes']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Reportes</a>
+        </li>
+        
+        <!-- Solo para USER -->
+        <li class="nav-item" *ngIf="currentUser && currentUser.rol === 'USER'">
+          <a class="nav-link" [routerLink]="['/mis-inscripciones']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Mis Inscripciones</a>
+        </li>
+        <li class="nav-item" *ngIf="currentUser && currentUser.rol === 'USER'">
+          <a class="nav-link" [routerLink]="['/mis-certificados']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Mis Certificados</a>
         </li>
       </ul>
       
