@@ -1,0 +1,260 @@
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Sistema de Inscripciones</h5>
+    </div>
+    
+    <!-- Pestañas -->
+    <div class="card-body p-0">
+      <ul class="nav nav-tabs" id="inscripcionesTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" 
+                  [class.active]="tabActiva === 'disponibles'"
+                  (click)="cambiarTab('disponibles')"
+                  type="button">
+            <i class="bi bi-mortarboard"></i> Cursos Disponibles
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" 
+                  [class.active]="tabActiva === 'inscripciones'"
+                  (click)="cambiarTab('inscripciones')"
+                  type="button">
+            <i class="bi bi-person-check"></i> Mis Inscripciones
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Contenido de las pestañas -->
+    <div class="card-body">
+      
+      <!-- Pestaña: Cursos Disponibles -->
+      <div *ngIf="tabActiva === 'disponibles'">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0">Cursos Disponibles para Inscripción</h6>
+          <span class="badge bg-info">{{ cursosDisponibles.length }} cursos</span>
+        </div>
+
+        <!-- Loading de cursos -->
+        <div class="row" *ngIf="cargandoCursos">
+          <div class="col-12 text-center">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Cargando cursos...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla de cursos disponibles -->
+        <div class="table-responsive" *ngIf="!cargandoCursos">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th>Nivel</th>
+                <th>Duración (horas)</th>
+                <th>Instructor</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let curso of cursosDisponibles">
+                <td><strong>{{ curso.titulo }}</strong></td>
+                <td>{{ curso.descripcion.length > 50 ? (curso.descripcion | slice:0:50) + '...' : curso.descripcion }}</td>
+                <td>
+                  <span class="badge" 
+                        [class]="curso.nivel === 'BASICO' ? 'bg-success' : 
+                                curso.nivel === 'INTERMEDIO' ? 'bg-warning' : 'bg-danger'">
+                    {{ curso.nivel }}
+                  </span>
+                </td>
+                <td>{{ curso.duracionEstimada }}</td>
+                <td>{{ curso.instructorNombre || 'No asignado' }}</td>
+                <td>
+                  <span *ngIf="estaInscrito(curso.id!)" class="badge bg-primary">
+                    <i class="bi bi-check-circle"></i> Inscrito
+                  </span>
+                  <span *ngIf="!estaInscrito(curso.id!)" class="badge bg-secondary">
+                    <i class="bi bi-circle"></i> Disponible
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-primary" 
+                          (click)="inscribirseACurso(curso)"
+                          [disabled]="estaInscrito(curso.id!)">
+                    <i class="bi bi-plus-circle"></i> 
+                    {{ estaInscrito(curso.id!) ? 'Ya inscrito' : 'Inscribirme' }}
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="cursosDisponibles.length === 0">
+                <td colspan="7" class="text-center text-muted">
+                  No hay cursos disponibles en este momento
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pestaña: Mis Inscripciones -->
+      <div *ngIf="tabActiva === 'inscripciones'">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0">Mis Inscripciones Activas</h6>
+          <span class="badge bg-success">{{ misInscripciones.length }} inscripciones</span>
+        </div>
+
+        <!-- Loading de inscripciones -->
+        <div class="row" *ngIf="cargandoInscripciones">
+          <div class="col-12 text-center">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Cargando inscripciones...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla de mis inscripciones -->
+        <div class="table-responsive" *ngIf="!cargandoInscripciones">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Curso</th>
+                <th>Progreso</th>
+                <th>Fecha Inscripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let inscripcion of misInscripciones">
+                <td><strong>{{ inscripcion.cursoTitulo }}</strong></td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="progress flex-grow-1 me-2" style="height: 20px;">
+                      <div class="progress-bar" 
+                           role="progressbar" 
+                           [style.width.%]="inscripcion.progreso"
+                           [attr.aria-valuenow]="inscripcion.progreso" 
+                           aria-valuemin="0" 
+                           aria-valuemax="100">
+                      </div>
+                    </div>
+                    <span class="small fw-bold">{{ inscripcion.progreso }}%</span>
+                  </div>
+                </td>
+                <td>{{ inscripcion.fechaInscripcion | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <span class="badge" 
+                        [class]="inscripcion.estado === 'INSCRITO' ? 'bg-primary' : 
+                                inscripcion.estado === 'COMPLETADO' ? 'bg-success' : 'bg-secondary'">
+                    {{ inscripcion.estado }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-success me-2" 
+                          (click)="iniciarCurso(inscripcion)"
+                          [disabled]="inscripcion.estado === 'CANCELADO'">
+                    <i class="bi bi-play-circle"></i> Iniciar
+                  </button>
+                  <button class="btn btn-sm btn-danger" 
+                          (click)="eliminarInscripcion(inscripcion)"
+                          [disabled]="inscripcion.estado === 'CANCELADO'">
+                    <i class="bi bi-trash"></i> Cancelar Inscripción
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="misInscripciones.length === 0">
+                <td colspan="5" class="text-center text-muted">
+                  <i class="bi bi-inbox"></i>
+                  <p class="mt-2">No tienes inscripciones activas</p>
+                  <small>Ve a la pestaña "Cursos Disponibles" para inscribirte en un curso</small>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para módulos del curso -->
+<div class="modal d-block" *ngIf="mostrarModal" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-list-ul"></i> Módulos del Curso: {{ cursoSeleccionado?.cursoTitulo }}
+        </h5>
+        <button type="button" class="btn-close" (click)="cerrarModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Loading de módulos -->
+        <div class="text-center" *ngIf="cargandoModulos">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Cargando módulos...</span>
+          </div>
+        </div>
+
+        <!-- Tabla de módulos -->
+        <div class="table-responsive" *ngIf="!cargandoModulos">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Orden</th>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let modulo of modulosCurso">
+                <td><span class="badge bg-secondary">{{ modulo.orden }}</span></td>
+                <td><strong>{{ modulo.titulo }}</strong></td>
+                <td>{{ modulo.descripcion }}</td>
+                <td>
+                  <span class="badge" 
+                        [class]="modulo.tipo === 'VIDEO' ? 'bg-info' : 
+                                modulo.tipo === 'TEXTO' ? 'bg-success' : 
+                                modulo.tipo === 'PDF' ? 'bg-warning' : 'bg-primary'">
+                    <i class="bi" 
+                       [class]="modulo.tipo === 'VIDEO' ? 'bi-play-circle' : 
+                               modulo.tipo === 'TEXTO' ? 'bi-file-text' : 
+                               modulo.tipo === 'PDF' ? 'bi-file-pdf' : 'bi-question-circle'"></i>
+                    {{ modulo.tipo }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [class]="obtenerEstadoModulo(modulo.id!) === 'TERMINADO' ? 'bg-success' : 'bg-secondary'">
+                    {{ obtenerEstadoModulo(modulo.id!) || 'PENDIENTE' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-primary" 
+                          (click)="completarModulo(modulo)"
+                          [disabled]="obtenerEstadoModulo(modulo.id!) === 'TERMINADO'">
+                    <i class="bi bi-check-circle"></i> 
+                    {{ obtenerEstadoModulo(modulo.id!) === 'TERMINADO' ? 'Completado' : 'Comenzar' }}
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="modulosCurso.length === 0">
+                <td colspan="6" class="text-center text-muted">
+                  Este curso no tiene módulos configurados
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -12,8 +12,12 @@ export class ModuloService {
 
   constructor(private http: HttpClient) { }
 
-  obtenerPorCurso(cursoId: number): Observable<Modulo[]> {
-    return this.http.get<Modulo[]>(`${this.apiUrl}/curso/${cursoId}`);
+  obtenerPorCurso(cursoId: number, usuarioId?: number): Observable<Modulo[]> {
+    let url = `${this.apiUrl}/curso/${cursoId}`;
+    if (usuarioId) {
+      url += `?usuarioId=${usuarioId}`;
+    }
+    return this.http.get<Modulo[]>(url);
   }
 
   eliminar(id: number): Observable<void> {

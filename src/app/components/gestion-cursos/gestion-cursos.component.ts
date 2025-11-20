@@ -85,6 +85,16 @@ export class GestionCursosComponent implements OnInit {
     this.cursoForm.reset();
     this.modulos.clear();
     this.mostrarFormulario = true;
+    
+    // Autoseleccionar el instructor logueado después de mostrar el formulario
+    setTimeout(() => {
+      const usuarioLogueado = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      if (usuarioLogueado && usuarioLogueado.id) {
+        this.cursoForm.patchValue({
+          instructorId: usuarioLogueado.id.toString()
+        });
+      }
+    }, 100);
   }
 
   editarCurso(curso: Curso) {

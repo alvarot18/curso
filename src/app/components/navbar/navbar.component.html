@@ -17,8 +17,8 @@
           <a class="nav-link" [routerLink]="['/gestion-usuarios']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Usuarios</a>
         </li>
         
-        <!-- Para ADMIN e INSTRUCTOR -->
-        <li class="nav-item" *ngIf="currentUser && (currentUser.rol === 'ADMIN' || currentUser.rol === 'INSTRUCTOR')">
+        <!-- Solo para INSTRUCTOR -->
+        <li class="nav-item" *ngIf="currentUser && currentUser.rol === 'INSTRUCTOR'">
           <a class="nav-link" [routerLink]="['/gestion-cursos']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Cursos</a>
         </li>
         

@@ -10,6 +10,8 @@ export interface Modulo {
   tipo: 'VIDEO' | 'TEXTO' | 'PDF' | 'QUIZ';
   contenido: string;
   orden: number;
+  estadoProgreso?: string; // PENDIENTE, TERMINADO
+  fechaCompletado?: string;
 }
 
 export interface Curso {
@@ -19,6 +21,7 @@ export interface Curso {
   duracionEstimada: number;
   nivel: 'BASICO' | 'INTERMEDIO' | 'AVANZADO';
   instructorId: number;
+  instructorNombre?: string;
   instructor?: {
     id: number;
     nombre: string;
