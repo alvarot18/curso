@@ -1,0 +1,324 @@
+<div class="container mt-4">
+  <!-- Lista de Cursos -->
+  <div class="card" *ngIf="!mostrarFormulario">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0">Gestión de Cursos</h5>
+      <button type="button" class="btn btn-primary" (click)="mostrarFormularioCrear()">
+        <i class="bi bi-plus-circle"></i> Nuevo Curso
+      </button>
+    </div>
+    <div class="card-body">
+      <div class="row" *ngIf="cargando">
+        <div class="col-12 text-center">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive" *ngIf="!cargando">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Descripción</th>
+              <th>Duración Est. (horas)</th>
+              <th>Nivel</th>
+              <th>Instructor</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let curso of cursos">
+              <td>{{ curso.titulo }}</td>
+              <td>{{ curso.descripcion.length > 50 ? (curso.descripcion | slice:0:50) + '...' : curso.descripcion }}</td>
+              <td>{{ curso.duracionEstimada }}</td>
+              <td><span class="badge bg-info">{{ curso.nivel }}</span></td>
+              <td>{{ obtenerNombreInstructor(curso.instructorId) }}</td>
+              <td><span class="badge" [class]="curso.activo ? 'bg-success' : 'bg-secondary'">{{ curso.activo ? 'Activo' : 'Inactivo' }}</span></td>
+              <td>
+                <button class="btn btn-sm btn-info me-2" (click)="mostrarModulosCurso(curso)">
+                  <i class="bi bi-list-ul"></i> Módulos
+                </button>
+                <button class="btn btn-sm btn-warning me-2" (click)="editarCurso(curso)">
+                  <i class="bi bi-pencil"></i> Editar
+                </button>
+                <button class="btn btn-sm btn-danger" (click)="eliminarCurso(curso)">
+                  <i class="bi bi-trash"></i> Eliminar
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="cursos.length === 0">
+              <td colspan="7" class="text-center">No hay cursos registrados</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario de Curso -->
+  <div class="card" *ngIf="mostrarFormulario">
+    <div class="card-header">
+      <h5 class="card-title mb-0">{{ editando ? 'Editar Curso' : 'Nuevo Curso' }}</h5>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="cursoForm" (ngSubmit)="onSubmit()">
+        <div class="row">
+          <!-- Información básica del curso -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="titulo" class="form-label">Título *</label>
+              <input type="text" class="form-control" 
+                     [class.is-invalid]="campoEsInvalido('titulo')"
+                     id="titulo" formControlName="titulo">
+              <div class="invalid-feedback" *ngIf="campoEsInvalido('titulo')">
+                {{ obtenerErrorCampo('titulo') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="descripcion" class="form-label">Descripción *</label>
+              <textarea class="form-control" rows="3"
+                        [class.is-invalid]="campoEsInvalido('descripcion')"
+                        id="descripcion" formControlName="descripcion"></textarea>
+              <div class="invalid-feedback" *ngIf="campoEsInvalido('descripcion')">
+                {{ obtenerErrorCampo('descripcion') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="duracionEstimada" class="form-label">Duración Estimada (horas) *</label>
+              <input type="number" class="form-control"
+                     [class.is-invalid]="campoEsInvalido('duracionEstimada')"
+                     id="duracionEstimada" formControlName="duracionEstimada" min="1" max="9999">
+              <div class="invalid-feedback" *ngIf="campoEsInvalido('duracionEstimada')">
+                {{ obtenerErrorCampo('duracionEstimada') }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="instructorId" class="form-label">Instructor *</label>
+              <select class="form-select"
+                      [class.is-invalid]="campoEsInvalido('instructorId')"
+                      id="instructorId" formControlName="instructorId">
+                <option value="">Seleccione un instructor</option>
+                <option *ngFor="let instructor of instructores" [value]="instructor.id">
+                  {{ instructor.nombre }}
+                </option>
+              </select>
+              <div class="invalid-feedback" *ngIf="campoEsInvalido('instructorId')">
+                {{ obtenerErrorCampo('instructorId') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12">
+            <div class="mb-3">
+              <label for="nivel" class="form-label">Nivel del Curso *</label>
+              <select class="form-select"
+                      [class.is-invalid]="campoEsInvalido('nivel')"
+                      id="nivel" formControlName="nivel">
+                <option value="">Seleccione un nivel</option>
+                <option value="BASICO">Básico</option>
+                <option value="INTERMEDIO">Intermedio</option>
+                <option value="AVANZADO">Avanzado</option>
+              </select>
+              <div class="invalid-feedback" *ngIf="campoEsInvalido('nivel')">
+                {{ obtenerErrorCampo('nivel') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección de Módulos -->
+        <div class="card mt-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="card-title mb-0">Módulos del Curso</h6>
+            <button type="button" class="btn btn-sm btn-success" (click)="agregarModulo()">
+              <i class="bi bi-plus-circle"></i> Agregar Módulo
+            </button>
+          </div>
+          <div class="card-body">
+            <div *ngIf="modulos.length === 0 && !editando" class="alert alert-warning text-center">
+              <i class="bi bi-exclamation-triangle"></i> 
+              <strong>¡Atención!</strong> No hay módulos agregados. Debe agregar al menos un módulo para crear el curso.
+              <br><small>Haga clic en "Agregar Módulo" para añadir contenido al curso.</small>
+            </div>
+            <div *ngIf="modulos.length === 0 && editando" class="alert alert-info text-center">
+              <small class="text-muted"><strong>Nota:</strong> Los módulos existentes serán reemplazados por los que agregue aquí.</small>
+            </div>
+
+            <div formArrayName="modulos">
+              <div *ngFor="let modulo of modulos.controls; let i = index" 
+                   [formGroupName]="i" class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <small class="text-muted">Módulo #{{ i + 1 }}</small>
+                  <button type="button" class="btn btn-sm btn-outline-danger" 
+                          (click)="eliminarModulo(i)">
+                    <i class="bi bi-trash"></i> Eliminar
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Título del Módulo *</label>
+                        <input type="text" class="form-control"
+                               [class.is-invalid]="moduloCampoEsInvalido(i, 'titulo')"
+                               formControlName="titulo">
+                        <div class="invalid-feedback" *ngIf="moduloCampoEsInvalido(i, 'titulo')">
+                          {{ obtenerErrorModuloCampo(i, 'titulo') }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="mb-3">
+                        <label class="form-label">Tipo de Contenido *</label>
+                        <select class="form-select"
+                               [class.is-invalid]="moduloCampoEsInvalido(i, 'tipo')"
+                               formControlName="tipo">
+                          <option value="VIDEO">Video</option>
+                          <option value="TEXTO">Texto</option>
+                          <option value="PDF">PDF</option>
+                          <option value="QUIZ">Quiz</option>
+                        </select>
+                        <div class="invalid-feedback" *ngIf="moduloCampoEsInvalido(i, 'tipo')">
+                          {{ obtenerErrorModuloCampo(i, 'tipo') }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="mb-3">
+                        <label class="form-label">Orden *</label>
+                        <input type="number" class="form-control"
+                               [class.is-invalid]="moduloCampoEsInvalido(i, 'orden')"
+                               formControlName="orden" min="1" readonly>
+                        <div class="invalid-feedback" *ngIf="moduloCampoEsInvalido(i, 'orden')">
+                          {{ obtenerErrorModuloCampo(i, 'orden') }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Descripción del Módulo *</label>
+                        <textarea class="form-control" rows="2"
+                                  [class.is-invalid]="moduloCampoEsInvalido(i, 'descripcion')"
+                                  formControlName="descripcion"></textarea>
+                        <div class="invalid-feedback" *ngIf="moduloCampoEsInvalido(i, 'descripcion')">
+                          {{ obtenerErrorModuloCampo(i, 'descripcion') }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Contenido *</label>
+                        <textarea class="form-control" rows="2"
+                                  [class.is-invalid]="moduloCampoEsInvalido(i, 'contenido')"
+                                  formControlName="contenido"
+                                  placeholder="URL del video, contenido de texto, enlace PDF, pregunta del quiz..."></textarea>
+                        <div class="invalid-feedback" *ngIf="moduloCampoEsInvalido(i, 'contenido')">
+                          {{ obtenerErrorModuloCampo(i, 'contenido') }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="d-flex justify-content-end mt-3">
+          <button type="button" class="btn btn-secondary me-2" (click)="cancelar()" [disabled]="cargando">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="cargando || !puedeEnviarFormulario()">
+            <span class="spinner-border spinner-border-sm me-2" *ngIf="cargando"></span>
+            {{ editando ? 'Actualizar' : 'Crear' }} Curso
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Gestión de Módulos por Curso -->
+  <div class="card" *ngIf="mostrarGestionModulos">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0">
+        Módulos del Curso: {{ cursoSeleccionado?.titulo }}
+      </h5>
+      <button type="button" class="btn btn-secondary btn-sm" (click)="cerrarGestionModulos()">
+        <i class="bi bi-x-circle"></i> Cerrar
+      </button>
+    </div>
+    <div class="card-body">
+      <div class="row" *ngIf="cargandoModulos">
+        <div class="col-12 text-center">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Cargando módulos...</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!cargandoModulos">
+        <div class="alert alert-info mb-3">
+          <i class="bi bi-info-circle"></i>
+          <strong>Información:</strong> Esta sección le permite gestionar los módulos existentes del curso seleccionado.
+          Puede eliminar módulos individualmente usando el botón rojo.
+        </div>
+
+        <div class="table-responsive" *ngIf="modulosCurso.length > 0">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Orden</th>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th>Tipo</th>
+                <th>Contenido</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let modulo of modulosCurso">
+                <td>{{ modulo.orden }}</td>
+                <td>{{ modulo.titulo }}</td>
+                <td>{{ modulo.descripcion.length > 30 ? (modulo.descripcion | slice:0:30) + '...' : modulo.descripcion }}</td>
+                <td>
+                  <span class="badge" 
+                        [class]="modulo.tipo === 'VIDEO' ? 'bg-primary' : 
+                                modulo.tipo === 'TEXTO' ? 'bg-success' : 
+                                modulo.tipo === 'PDF' ? 'bg-danger' : 'bg-warning'">
+                    {{ modulo.tipo }}
+                  </span>
+                </td>
+                <td>
+                  <small>{{ modulo.contenido.length > 40 ? (modulo.contenido | slice:0:40) + '...' : modulo.contenido }}</small>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-danger" (click)="eliminarModuloPorId(modulo.id)">
+                    <i class="bi bi-trash"></i> Eliminar
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div *ngIf="modulosCurso.length === 0" class="text-center text-muted py-4">
+          <i class="bi bi-inbox"></i>
+          <p class="mt-2">Este curso no tiene módulos registrados.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

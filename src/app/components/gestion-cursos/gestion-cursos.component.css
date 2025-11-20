@@ -1,0 +1,51 @@
+/* Estilos para el componente de gestión de cursos */
+
+.card {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table th {
+  background-color: #f8f9fa;
+  border-top: none;
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.card-header {
+  background-color: #fff;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.invalid-feedback {
+  display: block;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: #dc3545;
+}
+
+.card .card {
+  border: 1px solid #dee2e6;
+}
+
+.card .card .card-header {
+  background-color: #f8f9fa;
+  padding: 0.5rem 0.75rem;
+}
+
+.card .card .card-body {
+  padding: 0.75rem;
+}
